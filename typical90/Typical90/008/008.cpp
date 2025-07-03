@@ -1,5 +1,10 @@
 ﻿#include <iostream>
 #include <string>
+#include <vector>
+
+using namespace std;
+#define MOD	(1000000000 + 7)
+
 
 using namespace std;
 
@@ -34,10 +39,8 @@ void _assert(bool a, const char* msg)
 int _solve()
 {
 	int N;
-	cin >> N;
-	//
-	pair 
-
+	string S;					//N文字の文字列Ｓ
+	cin >> N;					
 	cin >> S;
 
 #if   0 //標準入力から得た変数をすべて出力する  //
