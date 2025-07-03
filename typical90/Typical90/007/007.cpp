@@ -9,37 +9,93 @@ using namespace std;
 //ターゲットが配列Aにあるとは限らない。最終的にleftとrightが隣り合う場所で探索終了する。
 //どちらかを選択するには、A[left_idx]とA[right_idx]のどちらがターゲットに近いかを比較して返す。
 //Aはソート済みであることが前提。
-int binary_search(int *A, int l_idx, int r_idx, int target)
+
+
+void _assert(bool a, const char *msg)
 {
-    if (l_idx > r_idx) {
-        return -1; // 見つからなかった場合
-    }
-    int mid = (l_idx + r_idx) / 2;
-    if (A[mid] == target) {
-        return mid; // 見つかった場合
-    } else if (A[mid] < target) {
-        //mid +  1をして、rightと一致してしまう場合は、終了です。
-        if(mid+1 >= r_idx){
-            ;
-            
-        }
-        return binary_search(A, mid + 1, r_idx, target); // 右側を探索
-    } else {
-        //mid - 1をして、leftと一致してしまう場合は、ここで終了。
-        return binary_search(A, l_idx, mid - 1, target); // 左側を探索
-    }
+	if (!a) {
+		cerr << "Assertion failed: " << msg << endl;
+		exit(1);
+	}
+}
+void _swap(int &a, int &b)
+{
+	int tmp = a;
+	a = b;
+	b = tmp;
+}
+int _qsort(int* A, int N)
+{
+	_assert(N > 0, "N must be greater than 0");
+	if (N == 1) {
+		return A[0]; // クラスが一つしかない場合は、絶対値を出力して終了
+	}
+	int pivot = A[N / 2]; // 中央の要素をピボットとする
+	int left_idx = 0;
+	int right_idx = N - 1;
+	while (left_idx <= right_idx) {
+		while (A[left_idx] < pivot) {
+			left_idx++;
+		}
+		while (A[right_idx] > pivot) {
+			right_idx--;
+		}
+		if (left_idx <= right_idx) {
+			_swap(A[left_idx], A[right_idx]);
+			left_idx++;
+			right_idx--;
+		}
+	}
+	if (right_idx > 0) {
+		_qsort(A, right_idx + 1); // 左側の部分配列を再帰的にソート
+	}
+	if (left_idx < N) {
+		_qsort(A + left_idx, N - left_idx); // 右側の部分配列を再帰的にソート
+	}
+	return 0;
 }
 
-int main()
+int _nearest_class_idx(int *A, int N, int target)
 {
-    int N,Q;            //Nクラス、Q人の生徒
-    cin >> N;            //Nクラス
-    int *A = new int[N];    //各クラスの人数
+	_assert(N > 0, "N must be greater than 0");
+	if (N == 1) {
+		return A[0]; // クラスが一つしかない場合は、絶対値を出力して終了
+	}
+	int l_idx = 0;
+	int r_idx = N - 1;
+    while (r_idx - l_idx > 1) {
+		int mid = (l_idx + r_idx) / 2;
+        //やらなくてもいいけど早くみつかるかと思って
+        if (A[mid] == target) { // midがターゲットと一致する場合
+            return mid; // midを返す
+        }
+		if (A[mid] < target) {
+			l_idx = mid + 1; // 右側を探索
+		} else {
+			r_idx = mid; // 左側を探索
+		}
+	}
+	// 最終的にl_idxとr_idxが隣り合う場所で探索終了する。
+	if (abs(A[r_idx] - target) < abs(target - A[l_idx])) { //midのほうが近い場合
+		return r_idx; //midを返す
+	} else {
+		return l_idx; //l_idxを返す
+	}
+}
+
+int _solve()
+{
+    int N,Q;					//Nクラス、Q人の生徒
+    cin >> N;					//Nクラス
+    int *A = new int[N];		//各クラスの人数
     for(int i=0 ; i < N ; ++i){
         cin >> A[i];
     }
-    cin >> Q;            //Q人の生徒
-    int *B = new int[Q];    //各生徒のクラス番号
+	//Aはソート済みであることが前提なので、ソートを行う
+	_qsort(A, N); // クラスの人数をソート
+
+    cin >> Q;					//Q人の生徒
+    int *B = new int[Q];		//各生徒のクラス番号
     for(int i=0 ; i<Q ;++i){
         cin >> B[i];
     }
@@ -56,44 +112,22 @@ int main()
         cout << B[i] << " ";
     }
     cout << endl;
-    return 0;
 #endif    //===============================================================
-
-    int *_ans = new int[Q];    //各生徒のクラス番号
-    //BはQ人分の生徒のレーティング数値、
-    //AはNクラスのレーティング数値。
-    //Bそれぞれについて一番近いレーティングクラスを探す。
-    //B(1<j<Q)で、クラスA(1<i<N)のレーティング数値と比較して、一番近いクラスを探す。
-    //各生徒のレーティング数値と、クラスのレーティング数値の差を求める。
-    //どこに所属するかを決める。二分探索で探す。
-    {
-        int idx = N/2;    //二分探索の初期値
-        int left,right;    //二分探索のための変数
-        for(int i=0 ; i < Q ; ++i){
-            if(A[idx] < B[i]){      //B[i]がA[idx]より大きい場合、右側を探索
-                left = idx;
-                right = N-1;
-                while(left <= right){
-                    int mid = (left + right) / 2;
-                    if(A[mid] < B[i]){
-                        left = mid + 1;
-                    }else{
-                        right = mid - 1;
-                    }
-                }
-            }else{
-                //B[i]がA[idx]より小さい場合、左側を探索
-                int left = 0;
-                int right = idx;
-                while(left <= right){
-                    int mid = (left + right) / 2;
-                    if(A[mid] < B[i]){
-                        left = mid + 1;
-                    }else{
-                        right = mid - 1;
-                    }
-                }
-            }
-        }
+    //人数分(B[Q人]) に対してバイナリサーチを掛けていき、その差分を足していきます。
+    //クラスが一個しかない場合もある・・
+    for (int j = 0; j < Q; ++j) {
+        int idx = _nearest_class_idx(A, N, B[j]); // クラスのインデックスを取得
+        cout << abs(A[idx] - B[j]) << endl; // 結果を出力
     }
+_fin:
+    return 0;
+}
+
+
+int main()
+{
+	for( ;cin.peek()!=EOF  ; ){
+		_solve();
+	}
+	return 0;
 }
