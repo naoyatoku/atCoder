@@ -1,1 +1,1 @@
-AtCoderの練習用b visual studio 2022用ソリューションです。
+AtCoderの練習用 visual studio 2022用ソリューションです。
